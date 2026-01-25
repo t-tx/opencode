@@ -567,6 +567,7 @@ export namespace Config {
       prompt: z.string().optional(),
       tools: z.record(z.string(), z.boolean()).optional().describe("@deprecated Use 'permission' field instead"),
       disable: z.boolean().optional(),
+      extra_modules: z.array(z.string()).optional(),
       description: z.string().optional().describe("Description of when to use the agent"),
       mode: z.enum(["subagent", "primary", "all"]).optional(),
       hidden: z
@@ -605,6 +606,7 @@ export namespace Config {
         "options",
         "permission",
         "disable",
+        "extra_modules",
         "tools",
       ])
 

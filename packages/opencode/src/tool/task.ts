@@ -96,6 +96,35 @@ export const TaskTool = Tool.define("task", async (ctx) => {
           ],
         })
       })
+
+      if (agent.extra_modules?.includes("use_histories")) {
+        const msgs = await Session.messages({ sessionID: ctx.sessionID })
+        const idMap = new Map<string, string>()
+
+        for (const msg of msgs) {
+          if (msg.info.id >= ctx.messageID) break
+          const newID = Identifier.ascending("message")
+          idMap.set(msg.info.id, newID)
+
+          const parentID = msg.info.role === "assistant" && msg.info.parentID ? idMap.get(msg.info.parentID) : undefined
+          const cloned = await Session.updateMessage({
+            ...msg.info,
+            sessionID: session.id,
+            id: newID,
+            ...(parentID && { parentID }),
+          })
+
+          for (const part of msg.parts) {
+            await Session.updatePart({
+              ...part,
+              id: Identifier.ascending("part"),
+              messageID: cloned.id,
+              sessionID: session.id,
+            })
+          }
+        }
+      }
+
       const msg = await MessageV2.get({ sessionID: ctx.sessionID, messageID: ctx.messageID })
       if (msg.info.role !== "assistant") throw new Error("Not an assistant message")
 
